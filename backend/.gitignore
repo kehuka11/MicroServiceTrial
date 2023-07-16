@@ -1,2 +1,4 @@
 #jooq generateで作成されたファイルは管理対象外
 jooq/**/*.java
+
+.DS_Store
