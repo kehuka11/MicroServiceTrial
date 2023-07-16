@@ -1,0 +1,5 @@
+rootProject.name = 'backend'
+include 'db-migrate'
+include 'jooq'
+include 'customer'
+

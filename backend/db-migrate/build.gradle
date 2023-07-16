@@ -1,0 +1,39 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.flywaydb:flyway-mysql:9.15.2'
+        classpath 'org.flywaydb:flyway-gradle-plugin:9.15.2'
+        classpath 'org.flywaydb:flyway-commandline:9.8.2'
+    }
+}
+
+plugins {
+    id "org.flywaydb.flyway" version "9.15.2"
+}
+
+configurations {
+    flywayMigration
+}
+apply plugin: "org.flywaydb.flyway"
+
+def useProfile
+if(project.hasProperty('profile')) {
+    useProfile = "$profile"
+} else {
+    useProfile = 'local'
+}
+
+def profileUrl = file("../gradle/environment/${useProfile}.gradle").toURI().toURL()
+def config = new ConfigSlurper().parse(profileUrl)
+
+def db_name = "$db_name"
+
+flyway {
+    url = "${config.server.db_url}/${db_name}"
+    locations = ["filesystem:${project.projectDir}/db/tenant"]
+
+    user = config.server.user
+    password = config.server.password
+}

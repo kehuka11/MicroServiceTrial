@@ -1,0 +1,48 @@
+plugins {
+    id("nu.studer.jooq") version "5.2.2"
+}
+
+dependencies {
+    jooqGenerator("mysql:mysql-connector-java:8.0.33")
+    jooqGenerator("jakarta.xml.bind:jakarta.xml.bind-api:3.0.1")
+}
+
+repositories {
+    mavenCentral()
+}
+
+jooq {  // (4)
+    version = '3.15.0'
+    edition = nu.studer.gradle.jooq.JooqEdition.OSS
+
+    configurations {
+        ws {
+            generationTool {
+                jdbc {
+                    url = 'jdbc:mysql://127.0.0.1:3306/example'
+                    user = 'root'
+                    password = 'Password123'
+                }
+                generator {
+                    name = 'org.jooq.codegen.DefaultGenerator'
+                    database {
+                        name = 'org.jooq.meta.mysql.MySQLDatabase'
+                        includes = '.*'
+                        excludes = 'flyway_schema_history' // (5)
+                        inputSchema = 'example'
+                    }
+                    strategy {
+                        name = 'org.jooq.codegen.DefaultGeneratorStrategy'
+                    }
+                    generate {
+                    }
+                    target { // (6)
+                        packageName = 'jooq.gen'
+                        directory = "$projectDir/src/main/java/"
+                    }
+                }
+            }
+        }
+    }
+}
+
