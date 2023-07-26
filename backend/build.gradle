@@ -1,19 +1,25 @@
+buildscript {
+    ext['jooq.version'] = "${jooq_version}"
+}
 plugins {
     id 'java'
     id 'org.springframework.boot' version '2.7.10'
     id 'io.spring.dependency-management' version '1.1.0'
+    id "com.diffplug.spotless" version "6.7.2"
 }
 
 group 'org.example'
 version '1.0-SNAPSHOT'
 
 java {
-    sourceCompatibility = '17'
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 repositories {
     mavenCentral()
 }
+
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
@@ -21,7 +27,91 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     runtimeOnly 'mysql:mysql-connector-java:8.0.33'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation "org.springframework.boot:spring-boot-starter-security"
+    implementation "com.diffplug.spotless:spotless-plugin-gradle:6.11.0"
+    implementation("org.springframework.boot:spring-boot-gradle-plugin:2.7.10")
+    implementation("com.github.viswaramamoorthy:gradle-util-plugins:0.1.0-RELEASE")
 }
+
+subprojects {
+
+
+    apply plugin: "java"
+//    apply plugin: "org.springframework.boot"
+//    apply plugin: "io.spring.dependency-management"
+    apply plugin: "com.diffplug.spotless"
+
+    ext['jooq.version'] = "${jooq_version}"
+    group = 'com.example'
+    version = '0.0.1-SNAPSHOT'
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+
+    repositories {
+        mavenCentral()
+    }
+
+    configurations.all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == 'org.jooq') {
+                details.useVersion "${jooq_version}"
+            }
+        }
+    }
+
+//    configurations {
+//        compileOnly {
+//            extendsFrom annotationProcessor
+//        }
+//    }
+
+    spotless {
+        java {
+            target project.fileTree(project.projectDir) {
+                include 'src/**/*.java'
+                exclude 'src/**/jooq/gen/**/*.*'
+            }
+            toggleOffOn()
+            googleJavaFormat()
+        }
+    }
+
+    sourceSets {
+        main {
+            java.srcDirs = ["src/main/java"]
+            resources.srcDirs = ["src/main/resources"]
+        }
+        test {
+            java.srcDirs = ["src/test/java"]
+            resources.srcDirs = ["src/test/resources"]
+        }
+    }
+
+    dependencies {
+//        compileOnly 'org.projectlombok:lombok'
+//        developmentOnly 'org.springframework.boot:spring-boot-devtools'
+//        annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+//        annotationProcessor 'org.projectlombok:lombok'
+//        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+//        implementation 'org.springframework.boot:spring-boot-starter-web'
+//        implementation "org.springframework.boot:spring-boot-starter-security"
+//        implementation 'org.springframework.boot:spring-boot-starter-jooq'
+//        testImplementation("org.springframework.boot:spring-boot-starter-test:2.7.10")
+        testImplementation("org.assertj:assertj-db:2.0.2")
+        runtimeOnly 'mysql:mysql-connector-java:8.0.33'
+        testImplementation('org.assertj:assertj-core:3.2.0')
+
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+}
+
+def springBootApplications = ["customer"]
+
 
 test {
     useJUnitPlatform()
@@ -35,7 +125,7 @@ task rundown(type: Exec) {
     commandLine "docker-compose", "down"
 }
 
-def db_name = "example"
+def db_name = "customer"
 
 task createDb(type: Exec) {
     def query = "CREATE DATABASE  ${db_name};"

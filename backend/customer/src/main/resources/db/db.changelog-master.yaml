@@ -1,0 +1,4 @@
+databaseChangeLog:
+  - changeSet:
+      author: authorName
+      id: changelog-1.0
