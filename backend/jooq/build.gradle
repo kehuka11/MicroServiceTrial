@@ -1,35 +1,59 @@
+buildscript {
+    ext {
+        jarName = "jooq"
+        jarVersion = "0.0.1-SNAPSHOT"
+    }
+}
+
+
 plugins {
     id("nu.studer.jooq") version "5.2.2"
 }
 
 dependencies {
+    implementation("org.jooq:jooq:${jooq_version}")
+    implementation("org.jooq:jooq-meta:${jooq_version}")
+    implementation("org.jooq:jooq-codegen-maven:${jooq_version}")
     jooqGenerator("mysql:mysql-connector-java:8.0.33")
-    jooqGenerator("jakarta.xml.bind:jakarta.xml.bind-api:3.0.1")
+    jooqGenerator("jakarta.xml.bind:jakarta.xml.bind-api:4.0.0")
 }
+
 
 repositories {
     mavenCentral()
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 jooq {  // (4)
-    version = '3.15.0'
+    version = "${jooq_version}"
     edition = nu.studer.gradle.jooq.JooqEdition.OSS
 
     configurations {
-        ws {
+        customer {
             generationTool {
                 jdbc {
-                    url = 'jdbc:mysql://127.0.0.1:3306/example'
+                    url = "jdbc:mysql://127.0.0.1:3306/${db_name}"
                     user = 'root'
                     password = 'Password123'
+
                 }
+
                 generator {
                     name = 'org.jooq.codegen.DefaultGenerator'
                     database {
                         name = 'org.jooq.meta.mysql.MySQLDatabase'
                         includes = '.*'
                         excludes = 'flyway_schema_history' // (5)
-                        inputSchema = 'example'
+//                        inputSchema = "${db_name}"
+                        schemata {
+                            schema {
+                                inputSchema = "${db_name}"
+                            }
+                        }
                     }
                     strategy {
                         name = 'org.jooq.codegen.DefaultGeneratorStrategy'
@@ -42,6 +66,27 @@ jooq {  // (4)
                     }
                 }
             }
+        }
+    }
+}
+
+
+//sourceSets {
+//    main {
+//        java {
+//            srcDirs = ['src/main/java', "build/classes/java/main/"]
+//        }
+//    }
+//}
+
+//compileJava {
+//    sourceSets.main.java.srcDirs("$projectDir/src/main/java/")
+//}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java', "$buildDir/classes/java/main"]
         }
     }
 }
